@@ -25,7 +25,7 @@ func init() {
 
 var ErrNoUsers = errors.New("Users: no users found")
 
-//localhost:8080/getuser?id=1&greeting=hi&name=bob
+//localhost:8080/setuser?id=1&greeting=hi&name=bob
 func setUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("setUser visitor:" + r.RemoteAddr)
 	id := "user:" + r.URL.Query().Get("id")
