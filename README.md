@@ -6,6 +6,8 @@ A set of simple applications to aid in studying for the Certified Kubernetes App
 * Network Policies
 * etc...
 
+You can just deploy the apps via the YAML manifests within the `k8sconfigs` folder which will pull from public docker images.  Or if you would like to modify the application source files and build from scratch, instructions are listed below.
+
 ## Ambassador App
 The ambassador app is a simple go webserver which gets and sets key value pairs through URL commands.  The Kubernetes deployment uses a ambassador pod running NGINX to proxy the connection to a seperate Redis deployment for state persistence.  The app can be deployed using the associated yaml definitions which use existing containers on the public dockerhub repository.  Alternatively, the source is available to build from scratch and push the resulting containers to where ever you choose.  The associated yaml configuration file specifies a service of type `loadbalancer`, if your Kubernetes deployment does not support a loadbalancer capability then adjust the yaml to change the service type to `ingress`.
 
@@ -17,6 +19,7 @@ CGO_ENABLED=0 GOOS=linux go build -a -o main .
 docker build -t <your repo name>/ambassadorweb:<tag> .
 docker push <your repo name>/ambassadorweb:<tag>
 # update kubernetes yaml manifest to point container image to new repository
+kubectl apply -f k8sconfigs/redis-dep.yaml
 kubectl apply -f k8sconfigs/ambassador-svc-dep.yaml
 kubectl get services -o wide # find the public address
 browse to <address>:8080/setuser?id=1&greeting=hi&name=bob
