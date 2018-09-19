@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redisweb-service
+spec:
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  selector:
+    app: redisweb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-proxy-conf
+data:
+  nginx.conf: |-
+    user  nginx;
+    worker_processes  1;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+        multi_accept on;
+    }
+    stream {
+      upstream redis {
+        server redis-service:6379;
+      }
+
+      server {
+        listen 6379 so_keepalive=on;
+        proxy_pass redis;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rediswebambassador-dep
+spec:
+  selector:
+    matchLabels:
+      app: redisweb
+  replicas: 8
+  progressDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: redisweb
+    spec:
+      containers:
+      - name: proxy
+        image: nginx
+        volumeMounts:
+        - name: nginx-proxy-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        ports:
+        - containerPort: 6379
+
+      - name: webapp
+        image: james65535/redisweb:v3
+        ports:
+        -  containerPort: 8080
+        env:
+        - name: SERVER
+          value: "localhost:6379"
+      volumes:
+      - name: nginx-proxy-config
+        configMap:
+          name: nginx-proxy-conf

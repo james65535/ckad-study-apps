@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sidecar-svc
+spec:
+  selector:
+    app: sidecar-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sidecar-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidecar-app
+  template:
+    metadata:
+      labels:
+        app: sidecar-app
+    spec:
+      volumes:
+      - name: shared-vol
+        emptyDir: {}
+
+      containers:
+      - name: scscript
+        image: james65535/sidecarscript:v1
+        volumeMounts:
+        - mountPath: /data
+          name: shared-vol
+        livenessProbe:
+          exec:
+            command: ["cat", "/data/dat"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+      - name: scapp
+        image: james65535/samplesidecar:v1
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /data
+          name: shared-vol
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
