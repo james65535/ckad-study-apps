@@ -22,8 +22,8 @@ docker push <your repo name>/ambassadorweb:<tag>
 kubectl apply -f k8sconfigs/redis-dep.yaml
 kubectl apply -f k8sconfigs/ambassador-svc-dep.yaml
 kubectl get services -o wide # find the public address
-browse to <address>:8080/setuser?id=1&greeting=hi&name=bob
-browse to <address>:8080/getuser?id=1
+browse to <address>/setuser?id=1&greeting=hi&name=bob
+browse to <address>/getuser?id=1
 ```
 
 ## Side Car App
@@ -42,5 +42,5 @@ docker push <your repo name>/sidecar-sc:<tag>
 # update kubernetes yaml manifest to point container image to new repository
 kubectl apply -f k8sconfigs/sidecar-svc-dep.yaml
 kubectl get services -o wide # find the public address
-browse to <address>:8080/
+browse to <address>/
 ```
